@@ -5,7 +5,6 @@ vcf = open("calls.vcf", "r")
 line = "#"
 while(line[0] == "#"):
     line = vcf.readline()
-print line
 
 ref_original = ""
 ref_name = ""
@@ -27,24 +26,13 @@ for i in range(l):
         ref_frag = tmp[3]
         target_frag = tmp[4].split(",")[0]  #fix maybe later
 
-        print ref_frag
-        print target_frag
-        print "----------"
+        ref.append(ref_frag)
+        target.append(target_frag)
 
-        if len(ref_frag) == len(target_frag):
-
-            #ref.append("--")
-            ref.append(ref_frag)
-            #ref.append("--")
-            target.append(target_frag)
-        elif len(ref_frag) > len(target_frag):
-            ref.append(ref_frag)
-            target.append(target_frag)
+        if len(ref_frag) > len(target_frag):
             for a in range(len(ref_frag) - len(target_frag)):
                 target.append("-")
         elif len(ref_frag) < len(target_frag):
-            ref.append(ref_frag)
-            target.append(target_frag)
             for a in range(len(target_frag) - len(ref_frag)):
                 ref.append("-")
 
@@ -62,7 +50,10 @@ vcf.close()
 ref_str = "".join(ref)
 target_str = "".join(target)
 
-output = open("output.fasta", "w")
+print len(ref)
+print len(ref_original)
+
+output = open("output2.fasta", "w")
 
 output.write(ref_name + "\n")
 output.write(ref_str + "\n")

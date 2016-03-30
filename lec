@@ -1,0 +1,39 @@
+
+Fasta
+
+(VCF variation calling format)
+
+
+-Read aligner
+-pileup
+-variation calling tool
+
+
+
+
+
+
+
+return alignment between Ref and Sub (fasta)
+
+
+
+../bowtie2-2.2.8/bowtie2 -f -x genome -1 reads1.fasta -2 reads2.fasta -S out.sam
+
+
+samtools view -bS out.sam > out.bam
+samtools sort -o out.sorted.bam -O bam -n out.sam
+
+
+
+
+
+
+--------------
+../bowtie2-2.2.8/bowtie2-build A.fasta genome
+../bowtie2-2.2.8/bowtie2 -f -x genome -1 reads1.fasta -2 reads2.fasta -S out.sam
+	../bowtie2-2.2.8/bowtie2 -f -x genome -1 reads1.fasta -2 reads2.fasta -S out.sam -I 900 -X 1100 -p 4
+samtools view -bS out.sam > out.bam
+samtools view -T /tmp/out_sorted -o out_sorted.bam out.bam
+samtools mpileup -uf A.fasta out_sorted.bam | ../bcftools-1.3/bcftools call -mv > calls.vcf
+
