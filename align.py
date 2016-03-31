@@ -1,5 +1,8 @@
 
 
+
+print "Calculating final alignment.."
+
 vcf = open("calls.vcf", "r")
 
 line = "#"
@@ -50,14 +53,23 @@ vcf.close()
 ref_str = "".join(ref)
 target_str = "".join(target)
 
-print len(ref)
-print len(ref_original)
+n = 70
 
-output = open("output2.fasta", "w")
+ref_list = [ref_str[i:i+n] for i in range(0, len(ref_str), n)]
+target_list = [target_str[i:i+n] for i in range(0, len(target_str), n)]
+
+
+print "Saving ouput file.."
+output = open("output.fasta", "w")
 
 output.write(ref_name + "\n")
-output.write(ref_str + "\n")
+for lin in ref_list:
+    output.write(lin + "\n")
+
 output.write(">B'\n")
-output.write(target_str + "\n")
+for lin in target_list:
+    output.write(lin + "\n")
+
+print "Complete!"
 
 output.close()
