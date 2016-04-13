@@ -46,6 +46,7 @@ if __name__ == '__main__':
                 for a in range(len(target_frag) - len(ref_frag)):
                     ref.append("-")
 
+            # maybe we should just comment this line?
             i += len(ref_frag) - 1
 
             nextline = vcf.readline()
