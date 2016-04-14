@@ -8,6 +8,10 @@ Fasta
 -pileup
 -variation calling tool
 
+PART 2:
+
+-now we have to detect large indels --> other tools
+-combine SNPs, short indels and large indels
 
 
 
