@@ -29,10 +29,10 @@ if __name__ == '__main__':
     ref = []
     target = []
     l = len(ref_original)
-
-    for i in range(l):
+    i = 0
+    while i < l:
         tmp = line.split("\t")
-        if i == int(tmp[1]):
+        if i == int(tmp[1] ) - 1:
             ref_frag = tmp[3]
             target_frag = tmp[4].split(",")[0]  # fix maybe later
 
@@ -46,7 +46,6 @@ if __name__ == '__main__':
                 for a in range(len(target_frag) - len(ref_frag)):
                     ref.append("-")
 
-            # maybe we should just comment this line?
             i += len(ref_frag) - 1
 
             nextline = vcf.readline()
@@ -55,6 +54,7 @@ if __name__ == '__main__':
         else:
             ref.append(ref_original[i])
             target.append(ref_original[i])
+        i += 1
 
     vcf.close()
 
