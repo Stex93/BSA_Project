@@ -32,7 +32,7 @@ if __name__ == '__main__':
     i = 0
     while i < l:
         tmp = line.split("\t")
-        if i == int(tmp[1] ) - 1:
+        if i == int(tmp[1]) - 1:
             ref_frag = tmp[3]
             target_frag = tmp[4].split(",")[0]  # fix maybe later
 
@@ -46,6 +46,7 @@ if __name__ == '__main__':
                 for a in range(len(target_frag) - len(ref_frag)):
                     ref.append("-")
 
+            # the problem is here but I don't know how to solve it...
             i += len(ref_frag) - 1
 
             nextline = vcf.readline()
@@ -60,6 +61,12 @@ if __name__ == '__main__':
 
     ref_str = "".join(ref)
     target_str = "".join(target)
+
+    j = 0
+    for i in range(0, len(ref_str)):
+        if ref_str[i] != target_str[i]:
+            j += 1
+    print "Variants detected: " + str(j)
 
     n = 70
 
