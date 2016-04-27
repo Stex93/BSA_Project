@@ -1,0 +1,132 @@
+\documentclass[10pt,a4paper,oneside]{scrartcl}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[english]{babel}
+\usepackage{microtype}
+\usepackage{indentfirst}
+\usepackage{graphicx}
+\usepackage[labelfont=bf]{caption}
+\usepackage[babel]{csquotes}
+\setkomafont{disposition}{\normalfont\bfseries}
+\usepackage[hidelinks]{hyperref}
+%\usepackage{booktabs}
+\usepackage{listings}
+\lstset{basicstyle=\fontsize{9}{9}\ttfamily,keywordstyle=\bfseries}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\begin{document}
+	\title{Project in Biological Sequence Analysis}
+	\subtitle{Variation Calling Challenge}
+	\author{Stefano Tedeschi - Jouko Niinimäki}
+	\maketitle
+
+	\section*{Tools}
+	
+	We tried many different tools, but finally we decided to use the following ones:
+	
+	\begin{description}
+		
+		\item[Bowtie2] to align the reads and producing the .sam file of the alignment;
+		
+		\item[Samtools] to process and manage the .sam and .bam files and for the variation calling;
+		
+		\item[Bcftools] to produce the .vcf file containing the SNPs and short INDELs;
+		
+		\item[indelMINER] to obtain the large insertions and deletions;
+		
+		\item[Ad-hoc script] to produce the final alignment from the .vcf files.
+			
+	\end{description}
+	
+	\section*{Workflow}
+	
+	\paragraph*{SNPs and short indels}\hspace{0pt} \\
+	
+	First we indexed the genome using Bowtie2:
+	
+	\begin{lstlisting}
+	bowtie2-build A.fasta genome
+	\end{lstlisting}
+	genome is the name of the index file used in the following steps.
+	Then, we aligned the reads using the command:
+	
+	\begin{lstlisting}
+	bowtie2 -f -x genome -1 reads1.fasta -2 reads2.fasta
+	  -S out.sam -I 950 -X 1050 -p 4
+	\end{lstlisting}
+	
+	\begin{description}
+		\item[-f] specifies that the inputs are in .fasta format;
+		\item[-x] identifies the reference genome;
+		\item[-1] identifies the first set of paired-end reads;
+		\item[-2] identifies the second set of paired-end reads;
+		\item[-S] identifies the output filename;
+		\item[-I] specifies the minimum gap within the pairs;
+		\item[-X] specifies the maximum gap within the pairs;
+		\item[-p] specifies the number of threads to be used in the computation.
+	\end{description}
+	
+	This configuration produced an alignment with an overall alignment rate of 88.87\%. Of 1120000 reads, about 60\% were concordantly aligned at least one time.
+	
+	We tried to change the -I and -X values, too, but this was the best trade-off between speed of computation and quality of the result.
+ 	
+	In order to call for variants, samtools and indelMINER require as input a sorted .bam file, so we first converted the out.sam file into .bam format and then we sorted it with the commands:
+	
+	\begin{lstlisting}
+	samtools view -bS out.sam > out.bam
+	samtools sort -T /tmp/out_sorted -o out_sorted.bam out.bam
+	\end{lstlisting}
+	
+	Finally, we performed the variation calling with the following pipe:
+	
+	\begin{lstlisting}
+	samtools mpileup -uf A.fasta out_sorted.bam |
+	  bcftools call -mv > calls.vcf
+	\end{lstlisting}
+	
+	\begin{description}
+		\item[-u] specifies to generate an uncompressed file;
+		\item[-f] specifies that the reference genome is in .fasta format.
+	\end{description}
+	
+	The result was a .vcf file containing all the informations about the detected SNPs and short INDELs which was then processed by the Python script described later.
+	
+	\paragraph*{Large INDELs}\hspace{0pt} \\
+	
+	In order to detect large INDELs we used indelMINER with the previously generated out\_sorted.bam file as input.
+	
+	The first step was to index the .bam file with samtools:
+	
+	\begin{lstlisting}
+	samtools index -b out_sorted.bam
+	\end{lstlisting}
+	
+	This produced the index file out\_sorted.bai
+	
+	After that we used the following command to produce another .vcf file with all the informations about large INDELs:
+	
+	\begin{lstlisting}
+	indelminer A.fasta sample=out_sorted.bam > calls_large.vcf
+	\end{lstlisting}
+	
+	\paragraph*{Production of the final alignment}\hspace{0pt} \\
+	
+	We wrote a short Python script to analyze the two .vcf files and to produce the final alignment.
+	
+	First, we considered SNPs and short INDELs and we produced the related aligment reading the file line by line.
+	
+	After that, the script analyzed the second .vcf file and updated the alignment with the information about large INDELs.
+	
+	The details of the code can be seen in the attached source file.	
+	
+	\section*{Main issues}
+
+	The main problem during the development of the project was to find the right tools to process the given input files and to produce acceptable results. Many of the tools we tried were outdated or poorly documented; for this reason it was very difficult to understand how they worked because there were no tutorials or they were for previuos versions of the given tool.
+	
+	In particular, with some tools, even the examples provided with the code didn't work. This could result in potentially useful tools unusable because of the lacks of documentation and good guides.
+	
+	The second problem we faced was a programming one with the Python script. First of all, at the beginning we didn't consider some special cases present in the .vcf file, namely two INDELs one nexto to the other, which produced a wrong alignment. This problem was solved by changing the way in which the .vcf file is processed.
+	
+	Then, finally, we had to handle the fact that we had two different .vcf files for short and large variations. Since we decided not to analyze them at the same time, but one after the other, we had to keep track of the previous modifications and take into account overlapping variations in order to obtain consistent results. 
+	
+\end{document}
